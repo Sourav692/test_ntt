@@ -1,0 +1,7 @@
+{
+    "group_name": "TIS-App-Totango-Engineers",
+    "secret_scopes": [
+        "tis-app-totango-secrets"
+    ]
+}
+

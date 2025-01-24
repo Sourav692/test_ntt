@@ -1,0 +1,21 @@
+scope_list:
+  scope_rsa_sourav:
+    dns_name: "https://dev-kv-rsa-sourav.vault.azure.net/"
+    resource_id: "/subscriptions/84defc61-bd44-44af-816e-7cc66a7e44e3/resourceGroups/dev-sn-data-zone-databricks-rg/providers/Microsoft.KeyVault/vaults/dev-kv-rsa-sourav"
+  scope-rsa-sourav:
+    dns_name: "https://dev-kv-rsa-sourav.vault.azure.net/"
+    resource_id: "/subscriptions/84defc61-bd44-44af-816e-7cc66a7e44e3/resourceGroups/dev-sn-data-zone-databricks-rg/providers/Microsoft.KeyVault/vaults/dev-kv-rsa-sourav"
+
+group_list:
+  CI Admins,
+  group_rsa_sourav
+
+scope_group_mapping:
+  scope_rsa_sourav:
+    - name: CI Admins
+      permission: MANAGE
+    - name: group_rsa_sourav
+      permission: READ
+  scope-rsa-sourav:
+    - name: CI Admins
+      permission: MANAGE

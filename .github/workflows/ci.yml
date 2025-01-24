@@ -1,0 +1,75 @@
+name: Configure Databricks
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  DEV:
+    runs-on: ubuntu-latest
+    environment: DEV
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@v0.222.0
+
+      - name: Import Notebooks
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: bash ./scripts/import_notebooks.sh        
+
+      - name: Deploy Groups
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: bash ./scripts/deploy_groups.sh
+
+  UAT:
+    runs-on: ubuntu-latest
+    environment: UAT
+    needs: DEV
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@v0.222.0
+
+      - name: Import Notebooks
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: bash ./scripts/import_notebooks.sh
+
+      - name: Deploy Groups
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: bash ./scripts/deploy_groups.sh
+
+  PRD:
+    runs-on: ubuntu-latest
+    environment: PRD
+    needs: UAT
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@v0.222.0
+
+      - name: Import Notebooks
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: bash ./scripts/import_notebooks.sh
+
+      - name: Deploy Jobs
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: bash ./scripts/deploy_groups.sh

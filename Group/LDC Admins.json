@@ -1,0 +1,7 @@
+{
+    "group_name": "LDC Admins",
+    "secret_scopes": [
+        "sn-data-secrets",
+        "au-services-secrets"
+    ]
+}

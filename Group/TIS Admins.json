@@ -1,0 +1,6 @@
+{
+    "group_name": "TIS Admins",
+    "secret_scopes": [
+        "tis-secrets"
+    ]
+}

@@ -1,0 +1,8 @@
+catalog_owner: TIS-Cisco-Bayer-Admins
+projects:
+  sla_reporting:
+    schemas: bronze
+    roles:
+      admins: TIS-Cisco-Bayer-Admins
+      engineers:
+      analysts: sourav.banerjee@global.ntt

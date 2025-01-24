@@ -1,0 +1,6 @@
+{
+    "group_name": "DigitalFabric Engineers",
+    "secret_scopes": [
+        "digitalfabric-secrets"
+    ]
+}

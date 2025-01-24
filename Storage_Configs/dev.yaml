@@ -1,0 +1,8 @@
+Storage:
+  groups:
+    tardis-lakehouse:
+      rawStorage: devsndatarawhvkzkxc
+      enrichedStorage: devsndataenrichedhvkzkxc
+    group 2:
+      rawStorage: devsndatarawgroup2
+      enrichedStorage: devsndataenrichedgroup2

@@ -1,0 +1,7 @@
+{
+    "group_name": "TIS Financial Insights Engineers",
+    "secret_scopes": [
+        "tis-financial-insights-secret"
+    ]
+}
+

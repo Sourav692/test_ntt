@@ -1,0 +1,5 @@
+Storage:
+  groups:
+    tardis-lakehouse:
+      rawStorage: prdsndatarawyugcupl
+      enrichedStorage: prdsndataenrichedyugcup

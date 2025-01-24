@@ -1,0 +1,60 @@
+name: Deploy to DEV Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      catalog_name:
+        description: "The name of the catalog to use"
+        required: true
+        default: "app_rsa_sourav"
+
+jobs:
+  deploy:
+    name: "Deploy Bundle"
+    runs-on: ubuntu-latest
+    environment: DEV
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate
+
+      - name: Deploy Bundle
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev
+        run: databricks bundle deploy
+
+  job_run:
+    name: "Run Databricks Workflow"
+    runs-on: ubuntu-latest
+    environment: DEV
+
+    needs:
+      - deploy
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Run pipeline update
+        shell: bash
+        run: |
+          set -o pipefail
+          databricks bundle run --params "mode=snapshot,catalog_name=${{ github.event.inputs.catalog_name }}" databricks_configure_job --refresh-all 2>&1 | tee output.log
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev

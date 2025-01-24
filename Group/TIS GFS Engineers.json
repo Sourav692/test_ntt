@@ -1,0 +1,6 @@
+{
+    "group_name": "TIS GFS Engineers",
+    "secret_scopes": [
+        "tis-gfs-secrets"
+    ]
+}

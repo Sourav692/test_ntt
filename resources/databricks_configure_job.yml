@@ -1,0 +1,87 @@
+# The main job for sn_databricks.
+new_cluster: &new_cluster
+  new_cluster:
+    num_workers: 3
+    spark_version: 15.3.x-cpu-ml-scala2.12
+    node_type_id: Standard_D3_v2
+    autoscale:
+        min_workers: 1
+        max_workers: 4
+
+
+common_permissions: &permissions
+  permissions:
+    - level: CAN_VIEW
+      group_name: users
+
+
+resources:
+  jobs:
+    databricks_configure_job:
+      name: ${bundle.target}-databricks_configure_job
+
+      # schedule:
+      #   # Run every day at 8:37 AM
+      #   quartz_cron_expression: '44 37 8 * * ?'
+      #   timezone_id: Europe/Amsterdam
+
+      email_notifications:
+        on_failure:
+          - sourav.banerjee@databricks.com
+
+      tasks:
+        - task_key: setup_scope_permissions
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../Notebooks/Scope/Setup Resources.py
+
+        - task_key: setup_catalog
+          depends_on:
+            - task_key: setup_scope_permissions
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../Notebooks/Catalog/Setup Resources.py
+            # base_parameters:
+              # # mode: Incremental
+              # catalog_name : app_rsa_sourav
+              # env_prefix : ${bundle.target}
+
+        - task_key: setup_projects
+          depends_on:
+            - task_key: setup_catalog
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../Notebooks/Project/Setup Resources.py
+            # base_parameters:
+            #   catalog_name : app_rsa_sourav
+            #   # mode: Incremental
+            #   env_prefix : ${bundle.target}
+        
+        - task_key: setup_permissions
+          depends_on:
+            - task_key: setup_projects
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../Notebooks/Project/Setup Permissions.py
+            base_parameters:
+              # catalog_name : app_rsa_sourav
+              # # mode: Incremental
+              # env_prefix : ${bundle.target}
+              dry_run : false
+      parameters:
+        - name: catalog_name
+          default: app_rsa_sourav
+        - name: env_prefix
+          default: ${bundle.target}
+        - name: dry_run
+          default: false
+        - name: mode
+          default: incremental
+      job_clusters:
+        - job_cluster_key: job_cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: Standard_D3_v2
+            autoscale:
+                min_workers: 1
+                max_workers: 3

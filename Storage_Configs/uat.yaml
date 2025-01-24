@@ -1,0 +1,6 @@
+Storage:
+  groups:
+    tardis-lakehouse:
+      rawStorage: uatsndatarawct7qzyl
+      enrichedStorage: uatsndataenrichedct7qzyl
+

@@ -1,0 +1,150 @@
+name: Deploy Incremental to DEV, UAT, and PRD
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+    paths:
+      - "**/*.yml"
+      - "**/*.py"
+  workflow_dispatch:
+
+jobs:
+  deploy_dev:
+    name: "Deploy and Run Bundles to DEV"
+    runs-on: ubuntu-latest
+    environment: DEV
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Get Changed Files in Specific Folders
+        id: changed-files
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const foldersToTrack = ['Catalog_Configs/'];
+            const changedFilesInFolders = [];
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner: context.repo.owner, repo: context.repo.repo, pull_number: context.payload.pull_request.number }
+            );
+            files.forEach(file => {
+              if (
+                (file.status === 'added' || file.status === 'modified') &&
+                foldersToTrack.some(folder => file.filename.startsWith(folder))
+              ) {
+                changedFilesInFolders.push(file.filename);
+              }
+            });
+            core.setOutput('changed_files', changedFilesInFolders.join('\n'));
+          result-encoding: string
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Write Changed Files to a Folder
+        run: |
+          mkdir -p changed_config
+          echo "${{ steps.changed-files.outputs.changed_files }}" > changed_config/config.yml
+
+      - name: Validate
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate
+
+      - name: Deploy Bundle
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+            DATABRICKS_BUNDLE_ENV: dev
+        run: databricks bundle deploy
+      
+      - name: Run pipeline update
+        shell: bash
+        run: |
+          set -o pipefail
+          databricks bundle run databricks_configure_job --refresh-all 2>&1 | tee output.log
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev
+
+  deploy_uat:
+    name: "Deploy and Run Bundle to UAT"
+    runs-on: ubuntu-latest
+    environment: UAT
+    needs: deploy_dev
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t uat
+
+      - name: Deploy Bundle
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+            DATABRICKS_BUNDLE_ENV: uat
+        run: databricks bundle deploy -t uat
+      
+      - name: Run pipeline update
+        shell: bash
+        run: |
+          set -o pipefail
+          databricks bundle run -t uat databricks_configure_job  --refresh-all 2>&1 | tee output.log
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev
+
+  deploy_prd:
+    name: "Deploy and Run Bundle to PRD"
+    runs-on: ubuntu-latest
+    environment: PRD
+    needs: deploy_uat
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle validate -t prd
+
+      - name: Deploy Bundle
+        env:
+            DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+            DATABRICKS_BUNDLE_ENV: prd
+        run: databricks bundle deploy -t prd
+
+      - name: Run pipeline update
+        shell: bash
+        run: |
+          set -o pipefail
+          databricks bundle run -t prd databricks_configure_job --refresh-all 2>&1 | tee output.log
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev

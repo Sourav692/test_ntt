@@ -1,0 +1,6 @@
+{
+    "group_name": "CI Admins",
+    "secret_scopes": [
+        "sn-data-secrets"
+    ]
+}

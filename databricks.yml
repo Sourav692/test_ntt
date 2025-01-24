@@ -1,0 +1,38 @@
+# This is a Databricks asset bundle definition for sn_databricks.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: sn_databricks
+
+include:
+  - resources/*.yml
+
+
+targets:
+  # The 'dev' target, for development purposes. This target is the default.
+  dev:
+    # We use 'mode: development' to indicate this is a personal development copy:
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default
+    # - The 'development' mode is used for Delta Live Tables pipelines
+    default: true
+    workspace:
+      host: https://adb-1526893472312518.18.azuredatabricks.net/
+      root_path: /Workspace/.bundle/${bundle.name}/${bundle.target}
+  
+
+  uat:
+    # We use 'mode: development' to indicate this is a personal development copy:
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default
+    # - The 'development' mode is used for Delta Live Tables pipelines
+    workspace:
+      host: https://adb-1526893472312518.18.azuredatabricks.net/
+      root_path: /Workspace/.bundle/${bundle.name}/${bundle.target}
+
+  # The 'prod' target, used for production deployment.
+  prd:
+    workspace:
+      host: https://adb-1526893472312518.18.azuredatabricks.net/
+      root_path: /Workspace/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      user_name: sourav.banerjee@databricks.com

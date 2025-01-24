@@ -1,0 +1,6 @@
+{
+    "group_name": "CSM Admins",
+    "secret_scopes": [
+        "sn-data-secrets"
+    ]
+}
